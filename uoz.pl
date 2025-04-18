@@ -2438,8 +2438,10 @@ sub do_createbatch
 	$cmd2 .= "apt install --yes dpkg-dev linux-headers-generic linux-image-generic\n";
 	$cmd2 .= "apt install --yes zfs-initramfs\n";
 
-	# Change file /etc/dkms/zfs.conf
-	$cmd2 .= "$sysmod $etcdkmszfsconffn REMAKE_INITRD=yes none\n";
+	if (not $os_ubuntu) {
+		# Change file /etc/dkms/zfs.conf
+		$cmd2 .= "$sysmod $etcdkmszfsconffn REMAKE_INITRD=yes none\n";
+	}
 
 	$cmd2 .= "apt install --yes vim\n";
 	$cmd2 .= "apt install --yes nano\n";
