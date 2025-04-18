@@ -630,6 +630,7 @@ sub getdrivewwnid
 	my $devdiskbyid = `ls -l /dev/disk/by-id`;
 	my @idlines = split( /\n/, $devdiskbyid);
 	my $id_ata;
+	my $id_uuid;
 	my $id_md_name;
 	my $id_md_uuid;
 	my $id_scsi;
@@ -657,11 +658,14 @@ sub getdrivewwnid
 		$dev = substr( $dev,6);
 		next if ($dev ne $thedrv);
 
+
 		my $typ = substr( $devuuidlink,0,4);
 		if ($typ eq 'wwn-') {
 			$id_wwn = $devuuidlink;
 		} elsif ($typ eq 'ata-') {
 			$id_ata = $devuuidlink;
+		} elsif ($typ eq 'uuid') {
+			$id_uuid = $devuuidlink;
 		} elsif ($typ eq 'md-u') {
 			$id_md_uuid = $devuuidlink;
 		} elsif ($typ eq 'md-n') {
@@ -679,16 +683,19 @@ sub getdrivewwnid
 
 
 	my $r;
-	if (defined $id_wwn) {
-		$r = $id_wwn;
-	} elsif (defined $id_scsi) {
-		$r = $id_scsi;
+	if (0) {
 	} elsif (defined $id_ata) {
 		$r = $id_ata;
+	} elsif (defined $id_uuid) {
+		$r = $id_uuid;
 	} elsif (defined $id_md_uuid) {
 		$r = $id_md_uuid;
 	} elsif (defined $id_md_name) {
 		$r = $id_md_name;
+	} elsif (defined $id_scsi) {
+		$r = $id_scsi;
+	} elsif (defined $id_wwn) {
+		$r = $id_wwn;
 	} elsif (defined $id_usb) {
 		$r = $id_usb;
 	} else {
