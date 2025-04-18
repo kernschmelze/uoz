@@ -65,7 +65,7 @@ my $diskbyid = 'disk/by-id/';
 
 
 
-my $myname = 'debianonzfsinst.pl';
+my $myname = 'uoz.pl';
 my $tmpfile = "/tmp/$myname.tmp";
 my $file_secondstage_bootstrap = '/root/' . $myname . '_secondstagebootstrap';
 my $boot2;
