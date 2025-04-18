@@ -1834,22 +1834,24 @@ sub getdrivepath
 
 sub do_createbatch
 {
-	# Configure the package sources:
-	# Change file /etc/apt/sources.list
-	my $aptsourceslist_orig = read_a_file($aptsourceslistfn);
-	die if (not defined $aptsourceslist_orig);
+	# ubuntu has zfs
+	if (not $os_ubuntu) {
+		# Configure the package sources:
+		# Change file /etc/apt/sources.list
+		my $aptsourceslist_orig = read_a_file($aptsourceslistfn);
+		die if (not defined $aptsourceslist_orig);
 
-	# work and compareable copy
-	my $an = $$aptsourceslist_orig;
-	$aptsourceslist_new = \$an;
-	# add bookworm-backports contrib non-free
+		# work and compareable copy
+		my $an = $$aptsourceslist_orig;
+		$aptsourceslist_new = \$an;
+		# add bookworm-backports contrib non-free
 
 
-	# TODO  bookworm-backports valid on all servers?
+		# TODO  bookworm-backports valid on all servers?
 
- 	$an =~ s/main non-free-firmware/main bookworm-backports contrib non-free non-free-firmware/g;
-	die if (write_a_file($aptsourceslistfn, $aptsourceslist_new));
-
+		$an =~ s/main non-free-firmware/main bookworm-backports contrib non-free non-free-firmware/g;
+		die if (write_a_file($aptsourceslistfn, $aptsourceslist_new));
+	}
 
 	$cmd .= "sudo apt update\n";
 
