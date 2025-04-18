@@ -27,8 +27,8 @@ my $os_ubuntu = 1;
 
 
 
-
-
+# let it settle to avoid errors
+my $partprobewait = '10';
 
 
 
@@ -1583,7 +1583,15 @@ my %datasetlist_selected = ();
 my $my_hostname;
 my $installuefi; # bool: if 0 install CSM
 # see do_createbatch()
+
 my $aptsourceslistfn = '/etc/apt/sources.list';
+if ($os_ubuntu) {
+	$aptsourceslistfn = '/etc/apt/sources.list.d/ubuntu.sources';
+} else {
+	$aptsourceslistfn = '/etc/apt/sources.list';
+}
+
+
 my $aptsourceslist_orig;
 my $aptsourceslist_new;
 
@@ -1902,11 +1910,17 @@ sub do_createbatch
 		# Unencrypted or ZFS native encryption:
 		$cmd .= "sgdisk -n4:0:0 -t4:BF00 /dev/$diskbyid$DISK\n";
 		$cmd .= "partprobe /dev/$diskbyid$DISK\n";
+		$cmd .= "sleep $partprobewait\n";
+
 # 		# ZFS will complain if the parts still contain metadata
 # 		# so lets delete first 1000K
 # 		$cmd .= "dd if=/dev/zero of=/dev/disk/by-id/$DISK-part3 count=1 bs=1000K\n";
 # 		$cmd .= "dd if=/dev/zero of=/dev/disk/by-id/$DISK-part4 count=1 bs=1000K\n";
 	}
+
+
+
+
 
 # 	# Ask: Mirror, raidz_something?
 # 	if (scalar @drives > 1) {
@@ -2276,8 +2290,11 @@ sub do_createbatch
 	# Install the minimal system:
 	# The debootstrap command leaves the new system in an unconfigured state.
 	# An alternative to using debootstrap is to copy the entirety of a working system into the new ZFS root.
-	$cmd .= "debootstrap bookworm /mnt\n";
-
+	if (not $os_ubuntu) {
+		$cmd .= "debootstrap bookworm /mnt\n";
+	} else {
+		$cmd .= "debootstrap --arch=amd64 noble /mnt http://de.archive.ubuntu.com/ubuntu\n";
+	}
 
 	# Copy in zpool.cache:
 # 	$cmd .= "mkdir $mntprefix/etc/zfs\n";
@@ -2350,6 +2367,15 @@ sub do_createbatch
 	$cmd .= "mount --make-private --rbind /proc $mntprefix/proc\n";
 	$cmd .= "mount --make-private --rbind /sys $mntprefix/sys\n";
 
+	$cmd .= "mount --make-private --rbind /dev/pts /mnt/dev/pts\n";
+
+# sudo mount -o bind /dev /mnt/dev
+# sudo mount -o bind /dev/pts /mnt/dev/pts
+# sudo mount -t sysfs /sys /mnt/sys
+# sudo mount -t proc /proc /mnt/proc
+
+	$cmd .= "cp /etc/resolv.conf $mntprefix/etc/resolv.conf\n";
+
 	$cmd .= "cp /root/$myname $mntprefix/root\n";
 	$cmd .= "cp $file_firststage $mntprefix/root\n";
 	$cmd .= "cp $file_secondstage $mntprefix/root\n";
@@ -2359,12 +2385,6 @@ sub do_createbatch
 	$cmd .= "cp $aptsourceslistfn $mntprefix$aptsourceslistfn\n";
 
 	$cmd .= "cp $etcdefaultgrubfnpath_tmp $mntprefix/root\n";
-# 	$cmd .= "cp $etcdefaultgrubfnpath_tmp $etcdefaultgrubfnpath_target\n";
-# 	$cmd .= "cp $etcdefaultgrubfnpath_tmp $mountpref$etcdefaultgrubfnpath_tmp\n";
-
-
-# 	$cmd .= "chroot /mnt /usr/bin/env DISK=$DISK bash --login\n";
-# 	$cmd .= "chroot /mnt /usr/bin/env bash --login\n";
 	$cmd .= "chroot $mntprefix $file_secondstage_bootstrap\n";
 
 	$cmd .= "$_unmountzfs_\n";
@@ -2380,12 +2400,20 @@ sub do_createbatch
 
 	$boot2 = "#!/usr/bin/bash\n";
 	$boot2 .= "apt update\n";
-	# first the bootstrap to get full Perl installed
-	$boot2 .= "apt install --yes perl\n";
+
+	if ($os_ubuntu) {
+		# first the bootstrap to get full Perl installed
+		$boot2 .= "apt install --yes perl\n";
+		# not inherited??
+		$boot2 .= "apt install --yes dialog\n";
+	} else {
+		# first the bootstrap to get full Perl installed
+		$boot2 .= "apt install --yes perl\n";
+		# not inherited??
+		$boot2 .= "apt install --yes dialog\n";
 
 
-	# not inherited??
-	$boot2 .= "apt install --yes dialog\n";
+	}
 
 
 	$boot2 .= "perl /root/$myname -2\n";
@@ -2394,6 +2422,12 @@ sub do_createbatch
 	# Configure a basic system environment:
 
 	$cmd2 .= "apt install --yes console-setup locales\n";
+
+	$cmd2 .= "localedef -i en_US -c -f UTF-8 en_US.UTF-8\n";
+	$cmd2 .= "localedef -i es_ES -c -f UTF-8 es_ES.UTF-8\n";
+	$cmd2 .= "localedef -i de_DE -c -f UTF-8 de_DE.UTF-8\n";
+
+
 
 	# Even if you prefer a non-English system language,
 	# always ensure that en_US.UTF-8 is available:
@@ -2407,6 +2441,8 @@ sub do_createbatch
 	# Change file /etc/dkms/zfs.conf
 	$cmd2 .= "$sysmod $etcdkmszfsconffn REMAKE_INITRD=yes none\n";
 
+	$cmd2 .= "apt install --yes vim\n";
+	$cmd2 .= "apt install --yes nano\n";
 
 	# Note:
 	# Ignore any error messages saying
@@ -2893,6 +2929,7 @@ print "drive '$_'\n";
 		my $salign = '';
 		$cmd3 .= "sgdisk $salign-n1:0:0 -t1:BF00 $devpath\n";
 		$cmd3 .= "partprobe $devpath\n";
+		$cmd3 .= "sleep $partprobewait\n";
 # 		# ZFS will complain if the parts still contain metadata
 # 		# so lets delete first 1000K
 # 		$cmd .= "dd if=/dev/zero of=/dev/disk/by-id/$DISK-part3 count=1 bs=1000K\n";
