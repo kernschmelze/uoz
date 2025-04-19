@@ -2390,7 +2390,8 @@ sub do_createbatch
 	$cmd .= "mount --make-private --rbind /proc $mntprefix/proc\n";
 	$cmd .= "mount --make-private --rbind /sys $mntprefix/sys\n";
 
-	$cmd .= "mount --make-private --rbind /dev/pts /mnt/dev/pts\n";
+# seen this somewhere... what does it, is it necessary???
+# 	$cmd .= "mount --make-private --rbind /dev/pts $mntprefix/dev/pts\n";
 
 # sudo mount -o bind /dev /mnt/dev
 # sudo mount -o bind /dev/pts /mnt/dev/pts
