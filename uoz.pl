@@ -1955,7 +1955,7 @@ sub do_createbatch
 		die if (write_a_file($aptsourceslistfn, $aptsourceslist_new));
 	} elsif ($ubuntudesktop) {
 		# desktop version has dysfunctional apt... ?!? TODO
-		$cmd .= "cp /etc/apt/sources.list.d/ubuntu.sources.curtin.orig /etc/apt/sources.list.d/ubuntu.sources \n";
+# 		$cmd .= "cp /etc/apt/sources.list.d/ubuntu.sources.curtin.orig /etc/apt/sources.list.d/ubuntu.sources \n";
 	}
 
 	$cmd .= "apt update\n";
