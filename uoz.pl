@@ -1864,9 +1864,12 @@ sub do_createbatch
 
 		$an =~ s/main non-free-firmware/main bookworm-backports contrib non-free non-free-firmware/g;
 		die if (write_a_file($aptsourceslistfn, $aptsourceslist_new));
+	} elsif {$ubuntudesktop) {
+		# desktop version has dysfunctional apt... ?!? TODO
+		$cmd .= "cp /etc/apt/sources.list.d/ubuntu.sources.curtin.orig /etc/apt/sources.list.d/ubuntu.sources \n";
 	}
 
-	$cmd .= "sudo apt update\n";
+	$cmd .= "apt update\n";
 
 	# if not using gnome, do we really need this crap?
 	$cmd .= "[0 1]gsettings set org.gnome.desktop.media-handling automount false\n";
