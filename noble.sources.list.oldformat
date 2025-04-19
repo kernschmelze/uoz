@@ -18,7 +18,7 @@ deb-src http://archive.ubuntu.com/ubuntu/ noble-security main restricted univers
 # deb http://archive.canonical.com/ubuntu/ noble partner
 # deb-src http://archive.canonical.com/ubuntu/ noble partner
 
-
+# here the contents of /etc/apt/sources.list.d/ubuntu.sources :
 # Types: deb
 # URIs: http://de.archive.ubuntu.com/ubuntu/
 # Suites: noble noble-updates noble-backports

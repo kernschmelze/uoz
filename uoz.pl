@@ -91,6 +91,94 @@ my $_appendtofstab_ = '_appendtofstab_';
 my $etcsysctldlocalconffntmp = '/root/etcsysctldlocalconf';
 my $etcsysctldlocalconffn = '/etc/sysctl.d/local.conf';
 
+
+
+my $aptsourceslist_new =
+'# Sources.list for 24.04
+# Copy into /etc/apt/sources.list
+# Then chattr +i the file so it does not get sabotaged
+
+
+deb http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
+
+deb http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse
+
+deb http://archive.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse
+
+# deb http://archive.ubuntu.com/ubuntu/ noble-backports main restricted universe multiverse
+# deb-src http://archive.ubuntu.com/ubuntu/ noble-backports main restricted universe multiverse
+
+# deb http://archive.canonical.com/ubuntu/ noble partner
+# deb-src http://archive.canonical.com/ubuntu/ noble partner
+
+# here the contents of /etc/apt/sources.list.d/ubuntu.sources :
+# Types: deb
+# URIs: http://de.archive.ubuntu.com/ubuntu/
+# Suites: noble noble-updates noble-backports
+# Components: main restricted universe multiverse
+# Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+#
+# Types: deb
+# URIs: http://security.ubuntu.com/ubuntu/
+# Suites: noble-security
+# Components: main restricted universe multiverse
+# Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+';
+
+
+my $ubuntusources =
+'# See http://help.ubuntu.com/community/UpgradeNotes for how to upgrade to
+# newer versions of the distribution.
+
+## Ubuntu distribution repository
+##
+## The following settings can be adjusted to configure which packages to use from Ubuntu.
+## Mirror your choices (except for URIs and Suites) in the security section below to
+## ensure timely security updates.
+##
+## Types: Append deb-src to enable the fetching of source package.
+## URIs: A URL to the repository (you may add multiple URLs)
+## Suites: The following additional suites can be configured
+##   <name>-updates   - Major bug fix updates produced after the final release of the
+##                      distribution.
+##   <name>-backports - software from this repository may not have been tested as
+##                      extensively as that contained in the main release, although it includes
+##                      newer versions of some applications which may provide useful features.
+##                      Also, please note that software in backports WILL NOT receive any review
+##                      or updates from the Ubuntu security team.
+## Components: Aside from main, the following components can be added to the list
+##   restricted  - Software that may not be under a free license, or protected by patents.
+##   universe    - Community maintained packages. Software in this repository receives maintenance
+##                 from volunteers in the Ubuntu community, or a 10 year security maintenance
+##                 commitment from Canonical when an Ubuntu Pro subscription is attached.
+##   multiverse  - Community maintained of restricted. Software from this repository is
+##                 ENTIRELY UNSUPPORTED by the Ubuntu team, and may not be under a free
+##                 licence. Please satisfy yourself as to your rights to use the software.
+##                 Also, please note that software in multiverse WILL NOT receive any
+##                 review or updates from the Ubuntu security team.
+##
+## See the sources.list(5) manual page for further settings.
+Types: deb
+URIs: http://archive.ubuntu.com/ubuntu/
+Suites: noble noble-updates noble-backports
+Components: main universe restricted multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+
+## Ubuntu security updates. Aside from URIs and Suites,
+## this should mirror your choices in the previous section.
+Types: deb
+URIs: http://security.ubuntu.com/ubuntu/
+Suites: noble-security
+Components: main universe restricted multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+';
+
+
+
+
 my $file_import_bpool_service = '/etc/systemd/system/zfs-import-bpool.service';
 # my $filecontents_import_bpool_service =
 # '[Unit]
@@ -1595,7 +1683,7 @@ if ($os_ubuntu) {
 
 
 my $aptsourceslist_orig;
-my $aptsourceslist_new;
+# my $aptsourceslist_new;
 
 my $hostnamefn = '/etc/hostname';
 # my $hostname_orig;
@@ -3048,10 +3136,6 @@ sub do_savebatchandconfigonlive
 	if (write_a_file($hostsfn, \$hosts_new)) {
 		die("do_savebatchandconfig(): write_a_file('$hostsfn', hosts_new) FAILED\n");
 	}
-# 	die if (write_a_file("$aptsourceslistfn", $aptsourceslistr));
-	if (write_a_file($aptsourceslistfn, $aptsourceslist_new)) {
-		die("do_savebatchandconfig(): write_a_file('$aptsourceslistfn', aptsourceslistr) FAILED\n");
-	}
 # 	die if (write_a_file("$fn_blacklist", $blacklistfiletxt));
 	if (write_a_file($fn_blacklist, \$blacklistfiletxt)) {
 		die("do_savebatchandconfig(): write_a_file('$fn_blacklist', blacklistfiletxt) FAILED\n");
@@ -3060,6 +3144,41 @@ sub do_savebatchandconfigonlive
 	if (write_a_file( $etcdefaultgrubfnpath_tmp, \$etcdefaultgrub)) {
 # 		die("do_savebatchandconfig(): write_a_file('/etc/default/grub', $etcdefaultgrub) FAILED\n");
 		die("do_savebatchandconfig(): write_a_file($etcdefaultgrubfnpath_tmp, etcdefaultgrub) FAILED\n");
+	}
+
+
+	# ubuntu needs special handling
+	if (not $os_ubuntu) {
+	# 	die if (write_a_file("$aptsourceslistfn", $aptsourceslistr));
+		if (write_a_file($aptsourceslistfn, $aptsourceslist_new)) {
+			die("do_savebatchandconfig(): write_a_file('$aptsourceslistfn', aptsourceslistr) FAILED\n");
+		}
+	} else {
+		# ubunto:
+		# 1. and then 2. (new) file
+		# 		checks:  if not exists? or
+		#				not correct size?
+		#    	then write and lock chattr +i
+
+		# 1st file old format
+		if (not (-e $aptsourceslistfn) or (-s $aptsourceslistfn) != 1424) {
+			# need to write and lock
+			if (write_a_file($aptsourceslistfn, \$aptsourceslist_new)) {
+				die("do_savebatchandconfig(): write_a_file('$aptsourceslistfn', aptsourceslistr) FAILED\n");
+			}
+			system("chattr +i $aptsourceslistfn");		# TODO error check
+		}
+
+		# 2nd file new format
+		my $f2 = '/etc/apt/sources.list.d/ubuntu.sources';
+		if (not (-e $f2) or (-s $f2) != 2552) {
+			# ubuntu.sources.curtin.orig
+			# need to write and lock
+			if (write_a_file($f2, \$ubuntusources)) {
+				die("do_savebatchandconfig(): write_a_file('$f2', aptsourceslistr) FAILED\n");
+			}
+			system("chattr +i $f2");		# TODO error check
+		}
 	}
 }
 
