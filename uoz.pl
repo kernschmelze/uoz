@@ -93,7 +93,7 @@ my $etcsysctldlocalconffn = '/etc/sysctl.d/local.conf';
 
 
 
-my $aptsourceslist_new =
+my $aptsourceslist_newt =
 '# Sources.list for 24.04
 # Copy into /etc/apt/sources.list
 # Then chattr +i the file so it does not get sabotaged
@@ -128,6 +128,7 @@ deb-src http://archive.ubuntu.com/ubuntu/ noble-security main restricted univers
 # Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 ';
 
+my $aptsourceslist_new = \$aptsourceslist_newt;
 
 my $ubuntusources =
 '# See http://help.ubuntu.com/community/UpgradeNotes for how to upgrade to
@@ -3150,7 +3151,7 @@ sub do_savebatchandconfigonlive
 	# ubuntu needs special handling
 	if (not $os_ubuntu) {
 	# 	die if (write_a_file("$aptsourceslistfn", $aptsourceslistr));
-		if (write_a_file($aptsourceslistfn, \$aptsourceslist_new)) {
+		if (write_a_file($aptsourceslistfn, $aptsourceslist_new)) {
 			die("do_savebatchandconfig(): write_a_file('$aptsourceslistfn', aptsourceslistr) FAILED\n");
 		}
 	} else {
@@ -3163,7 +3164,7 @@ sub do_savebatchandconfigonlive
 		# 1st file old format
 		if (not (-e $aptsourceslistfn) or (-s $aptsourceslistfn) != 1424) {
 			# need to write and lock
-			if (write_a_file($aptsourceslistfn, \$aptsourceslist_new)) {
+			if (write_a_file($aptsourceslistfn, $aptsourceslist_new)) {
 				die("do_savebatchandconfig(): write_a_file('$aptsourceslistfn', aptsourceslistr) FAILED\n");
 			}
 			system("chattr +i $aptsourceslistfn");		# TODO error check
