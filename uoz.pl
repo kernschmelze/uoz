@@ -1675,11 +1675,11 @@ my $installuefi; # bool: if 0 install CSM
 # see do_createbatch()
 
 my $aptsourceslistfn = '/etc/apt/sources.list';
-if ($os_ubuntu) {
-	$aptsourceslistfn = '/etc/apt/sources.list.d/ubuntu.sources';
-} else {
-	$aptsourceslistfn = '/etc/apt/sources.list';
-}
+# if ($os_ubuntu) {
+# 	$aptsourceslistfn = '/etc/apt/sources.list.d/ubuntu.sources';
+# } else {
+# 	$aptsourceslistfn = '/etc/apt/sources.list';
+# }
 
 
 my $aptsourceslist_orig;
@@ -3150,7 +3150,7 @@ sub do_savebatchandconfigonlive
 	# ubuntu needs special handling
 	if (not $os_ubuntu) {
 	# 	die if (write_a_file("$aptsourceslistfn", $aptsourceslistr));
-		if (write_a_file($aptsourceslistfn, $aptsourceslist_new)) {
+		if (write_a_file($aptsourceslistfn, \$aptsourceslist_new)) {
 			die("do_savebatchandconfig(): write_a_file('$aptsourceslistfn', aptsourceslistr) FAILED\n");
 		}
 	} else {
