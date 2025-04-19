@@ -24,9 +24,9 @@ use POSIX ":sys_wait_h";
 
 
 my $os_ubuntu = 1;
+my $os_name = 'ubuntu';
 
-
-
+# race condition if no wait
 # let it settle to avoid errors
 my $partprobewait = '10';
 
@@ -1835,11 +1835,7 @@ sub getdrivepath
 # 	my $dp = " $did";
 
 	if (defined $partno and not ($dp =~ /^uuid/)) {
-# 		if ($usesdX) {
-# 			$dp .= $partno;
-# 		} else {
-			$dp .= "-part$partno";
-# 		}
+		$dp .= "-part$partno";
 	}
 
 	return $dp;
@@ -1911,11 +1907,6 @@ sub do_createbatch
 		$cmd .= "sgdisk -n4:0:0 -t4:BF00 /dev/$diskbyid$DISK\n";
 		$cmd .= "partprobe /dev/$diskbyid$DISK\n";
 		$cmd .= "sleep $partprobewait\n";
-
-# 		# ZFS will complain if the parts still contain metadata
-# 		# so lets delete first 1000K
-# 		$cmd .= "dd if=/dev/zero of=/dev/disk/by-id/$DISK-part3 count=1 bs=1000K\n";
-# 		$cmd .= "dd if=/dev/zero of=/dev/disk/by-id/$DISK-part4 count=1 bs=1000K\n";
 	}
 
 
@@ -2086,16 +2077,11 @@ sub do_createbatch
 # 	$cmd .= "zpool set cachefile=none $bootpool/BOOT\n";
 
 	# Create filesystem datasets for the root and boot filesystems:
+	$cmd .= "zfs create -o canmount=noauto -o mountpoint=/ $rootpool/ROOT/$os_name\n";
+# 	$cmd .= "zpool set cachefile=none $rootpool/ROOT/$os_name\n";
 
-# 	$cmd .= "zfs create -o cachefile=none -o canmount=noauto -o mountpoint=/ $rootpool/ROOT/debian\n";
-	$cmd .= "zfs create -o canmount=noauto -o mountpoint=/ $rootpool/ROOT/debian\n";
-# 	$cmd .= "zpool set cachefile=none $rootpool/ROOT/debian\n";
-
-	my $debianroot = "$rootpool/ROOT/debian";
-	$cmd .= "zfs mount $debianroot\n";
-
-
-
+	my $osroot = "$rootpool/ROOT/$os_name";
+	$cmd .= "zfs mount $osroot\n";
 
 	# TODO
 	# make sure that there is an immutablen cache file of length zero
@@ -2106,12 +2092,8 @@ sub do_createbatch
 # 	$cmd .= "chmod a-w $debianroot/etc/zfs/zpool.cache\n";
 # 	$cmd .= "chattr +i $debianroot/etc/zfs/zpool.cache\n";
 
-
-
-
-# 	$cmd .= "zfs create -o cachefile=none -o mountpoint=/boot $bootpool/BOOT/debian\n";
-	$cmd .= "zfs create -o mountpoint=/boot $bootpool/BOOT/debian\n";
-# 	$cmd .= "zpool set cachefile=none $bootpool/BOOT/debian\n";
+	$cmd .= "zfs create -o mountpoint=/boot $bootpool/BOOT/$os_name\n";
+# 	$cmd .= "zpool set cachefile=none $bootpool/BOOT/$os_name\n";
 
 	# Create datasets:
 
@@ -2292,28 +2274,61 @@ sub do_createbatch
 	# An alternative to using debootstrap is to copy the entirety of a working system into the new ZFS root.
 	if (not $os_ubuntu) {
 		$cmd .= "debootstrap bookworm /mnt\n";
+		$cmd .= "cp /etc/resolv.conf $mntprefix/etc/resolv.conf\n";
+		$cmd .= "cp $hostnamefn $mntprefix$hostnamefn\n";
+		$cmd .= "cp $hostsfn $mntprefix$hostsfn\n";
+		$cmd .= "cp $aptsourceslistfn $mntprefix$aptsourceslistfn\n";
 	} else {
 		$cmd .= "debootstrap --arch=amd64 noble /mnt http://de.archive.ubuntu.com/ubuntu\n";
+		$cmd .= "cp -av /root $mntprefix/root\n";
+		$cmd .= "cp -av /boot $mntprefix/boot\n";
+		$cmd .= "cp -av /usr $mntprefix/usr\n";
+		$cmd .= "cp -av /srv $mntprefix/srv\n";
+		$cmd .= "cp -av /home $mntprefix/home\n";
+		$cmd .= "cp -av /etc $mntprefix/etc\n";
+		# treat fstab... TODO
+		# remove all entries pointing to donor system disk
+		# keep only swap and maybe home (if on zfs)
+		$cmd .= "mv $mntprefix/etc/fstab $mntprefix/etc/fstab.prev\n";
+
+
+
+# 		$cmd .= "debootstrap --arch=amd64 noble /mnt http://de.archive.ubuntu.com/ubuntu\n";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 
-	# Copy in zpool.cache:
-# 	$cmd .= "mkdir $mntprefix/etc/zfs\n";
-# 	$cmd .= "cp /etc/zfs/zpool.cache $mntprefix/etc/zfs/\n";
 
-	# Step 4: System Configuration
+
+
 
 	# Configure the hostname:
-	# Replace HOSTNAME with the desired hostname:
-# 	my $hostname_orig = read_a_file($hostnamefn);
-# 	die if (not defined $hostname_orig);
-	# work and compareable copy
-# 	$hostname_new = \$an;
 	$hostname_new .= "$my_hostname\n";
-
-# 	$cmd .= "hostname $my_hostname\n";
-# 	$cmd .= "hostname > /mnt/etc/hostname\n";
-
-
 
 	# Update /etc/hosts
 # 		vi /mnt/etc/hosts
@@ -2329,13 +2344,10 @@ sub do_createbatch
 	$hosts_new = $$hosts_orig;
 
 	$hosts_new .= "\n127.0.0.1\t$my_hostname$etchosts\n";
-# 	die if (append_a_file('/mnt/etc/hostname', \$addstr));
-# 	die if (append_a_file('/mnt/etc/hostname', \$addstr));
 
 
 	# Create the interface conf file
 
-# 	$intfconfigfnam = $mntprefix . '/etc/network/interfaces.d/' . $inp_interface_selected;
 	$intfconfigfnam = '/etc/network/interfaces.d/' . $inp_interface_selected;
 	$intfconfigftxt =
 		"Customize this file if the system is not a DHCP client.\n" .
@@ -2374,15 +2386,17 @@ sub do_createbatch
 # sudo mount -t sysfs /sys /mnt/sys
 # sudo mount -t proc /proc /mnt/proc
 
-	$cmd .= "cp /etc/resolv.conf $mntprefix/etc/resolv.conf\n";
 
+	# save $myname configuration
 	$cmd .= "cp /root/$myname $mntprefix/root\n";
 	$cmd .= "cp $file_firststage $mntprefix/root\n";
 	$cmd .= "cp $file_secondstage $mntprefix/root\n";
 	$cmd .= "cp $file_secondstage_bootstrap $mntprefix/root\n";
-	$cmd .= "cp $hostnamefn $mntprefix$hostnamefn\n";
-	$cmd .= "cp $hostsfn $mntprefix$hostsfn\n";
-	$cmd .= "cp $aptsourceslistfn $mntprefix$aptsourceslistfn\n";
+
+
+
+
+
 
 	$cmd .= "cp $etcdefaultgrubfnpath_tmp $mntprefix/root\n";
 	$cmd .= "chroot $mntprefix $file_secondstage_bootstrap\n";
@@ -2633,7 +2647,9 @@ sub do_createbatch
 
 	#### Step 8: Full Software Installation
 	$cmd2 .= "apt dist-upgrade --yes\n";
-	$cmd2 .= "tasksel --new-install\n";
+	if (not $os_ubuntu) {
+		$cmd2 .= "tasksel --new-install\n";
+	}
 
 	# TODO
 	# 	Disable log compression:
