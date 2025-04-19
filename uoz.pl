@@ -3164,9 +3164,11 @@ sub do_savebatchandconfigonlive
 		# 1st file old format
 		if (not (-e $aptsourceslistfn) or (-s $aptsourceslistfn) != 1424) {
 			# need to write and lock
-			if (write_a_file($aptsourceslistfn, $aptsourceslist_new)) {
-				die("do_savebatchandconfig(): write_a_file('$aptsourceslistfn', aptsourceslistr) FAILED\n");
-			}
+			# ignore write fails, just assume the file is there and already locked
+			write_a_file($aptsourceslistfn, $aptsourceslist_new);
+# 			if (write_a_file($aptsourceslistfn, $aptsourceslist_new)) {
+# 				die("do_savebatchandconfig(): write_a_file('$aptsourceslistfn', aptsourceslistr) FAILED\n");
+# 			}
 			system("chattr +i $aptsourceslistfn");		# TODO error check
 		}
 
@@ -3175,9 +3177,11 @@ sub do_savebatchandconfigonlive
 		if (not (-e $f2) or (-s $f2) != 2552) {
 			# ubuntu.sources.curtin.orig
 			# need to write and lock
-			if (write_a_file($f2, \$ubuntusources)) {
-				die("do_savebatchandconfig(): write_a_file('$f2', aptsourceslistr) FAILED\n");
-			}
+			# ignore write fails, just assume the file is there and already locked
+			write_a_file($f2, \$ubuntusources);
+# 			if (write_a_file($f2, \$ubuntusources)) {
+# 				die("do_savebatchandconfig(): write_a_file('$f2', aptsourceslistr) FAILED\n");
+# 			}
 			system("chattr +i $f2");		# TODO error check
 		}
 	}
