@@ -1871,7 +1871,7 @@ sub do_createbatch
 	# if not using gnome, do we really need this crap?
 	$cmd .= "[0 1]gsettings set org.gnome.desktop.media-handling automount false\n";
 # 	$cmd .= "apt install --yes debootstrap gdisk zfsutils-linux\n";
-	if ($ubuntudesktop) {
+	if (not $ubuntudesktop) {
 		# it lacks debootstrap...
 		$cmd .= "apt install --yes debootstrap\n";
 	}
