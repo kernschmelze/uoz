@@ -26,6 +26,8 @@ use POSIX ":sys_wait_h";
 my $os_ubuntu = 1;
 my $os_name = 'ubuntu';
 
+my $ubuntudesktop = 1;
+
 # race condition if no wait
 # let it settle to avoid errors
 my $partprobewait = '10';
@@ -1869,7 +1871,10 @@ sub do_createbatch
 	# if not using gnome, do we really need this crap?
 	$cmd .= "[0 1]gsettings set org.gnome.desktop.media-handling automount false\n";
 # 	$cmd .= "apt install --yes debootstrap gdisk zfsutils-linux\n";
-	$cmd .= "apt install --yes debootstrap\n";
+	if ($ubuntudesktop) {
+		# it lacks debootstrap...
+		$cmd .= "apt install --yes debootstrap\n";
+	}
 	$cmd .= "apt install --yes gdisk\n";
 	$cmd .= "apt install --yes zfsutils-linux\n";
 
@@ -2279,13 +2284,16 @@ sub do_createbatch
 		$cmd .= "cp $hostsfn $mntprefix$hostsfn\n";
 		$cmd .= "cp $aptsourceslistfn $mntprefix$aptsourceslistfn\n";
 	} else {
-		$cmd .= "debootstrap --arch=amd64 noble /mnt http://de.archive.ubuntu.com/ubuntu\n";
+		if (not $ubuntudesktop) {
+			$cmd .= "debootstrap --arch=amd64 noble /mnt http://de.archive.ubuntu.com/ubuntu\n";
+		}
 		$cmd .= "cp -av /root $mntprefix/root\n";
 		$cmd .= "cp -av /boot $mntprefix/boot\n";
 		$cmd .= "cp -av /usr $mntprefix/usr\n";
 		$cmd .= "cp -av /srv $mntprefix/srv\n";
 		$cmd .= "cp -av /home $mntprefix/home\n";
 		$cmd .= "cp -av /etc $mntprefix/etc\n";
+		$cmd .= "cp -av /snap $mntprefix/snap\n";
 		# treat fstab... TODO
 		# remove all entries pointing to donor system disk
 		# keep only swap and maybe home (if on zfs)
