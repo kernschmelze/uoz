@@ -1642,7 +1642,7 @@ GRUB_TIMEOUT=120
 GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
 # GRUB_CMDLINE_LINUX_DEFAULT="nomodeset"
 GRUB_CMDLINE_LINUX_DEFAULT=""
-GRUB_CMDLINE_LINUX="root=ZFS====DEBIANROOTPOOL===/ROOT/debian"
+GRUB_CMDLINE_LINUX="root=ZFS====SYSTEMROOTPOOL===/ROOT/' . $os_name . '"
 GRUB_TERMINAL=console
 # Uncomment if you do not want GRUB to pass "root=UUID=xxx" parameter to Linux
 #GRUB_DISABLE_LINUX_UUID=true
@@ -1733,7 +1733,7 @@ print "drive '$_'\n";
 # 	$zedcachebpool = "$zedcachedir/$bootpool";
 # 	$zedcacherpool = "$zedcachedir/$rootpool";
 
-	$etcdefaultgrub =~ s/===DEBIANROOTPOOL===/$rootpool/;
+	$etcdefaultgrub =~ s/===SYSTEMROOTPOOL===/$rootpool/;
 
 
 
@@ -1864,7 +1864,7 @@ sub do_createbatch
 
 		$an =~ s/main non-free-firmware/main bookworm-backports contrib non-free non-free-firmware/g;
 		die if (write_a_file($aptsourceslistfn, $aptsourceslist_new));
-	} elsif {$ubuntudesktop) {
+	} elsif ($ubuntudesktop) {
 		# desktop version has dysfunctional apt... ?!? TODO
 		$cmd .= "cp /etc/apt/sources.list.d/ubuntu.sources.curtin.orig /etc/apt/sources.list.d/ubuntu.sources \n";
 	}
@@ -2548,7 +2548,7 @@ sub do_createbatch
 
 		$cmd2 .= "grub-install --target=x86_64-efi " .
 					"--efi-directory=/boot/efi " .
-					"--bootloader-id=debian --recheck --no-floppy\n";
+					"--bootloader-id=$os_name --recheck --no-floppy\n";
 
 		# It is not necessary to specify the disk here.
 		# If you are creating a mirror or raidz topology,
@@ -2560,11 +2560,11 @@ sub do_createbatch
 		if (scalar @drives > 1) {
 			$cmd2 .= "umount /boot/efi\n";
 			my $dskind = 1;
-			# For the second and subsequent disks (increment debian-2 to -3, etc.):
+			# For the second and subsequent disks (increment $os_name-2 to -3, etc.):
 			while ($dskind < scalar @drives) {
 				$cmd2 .= "dd if=$usedrive-part2 of=" . $drives[$dskind] . "-part2\n" .
 					"efibootmgr -c -g -d " . $drives[$dskind] . " -p 2 " .
-						"-L \"debian-" . ++$dskind . "\" -l '\\EFI\\debian\\grubx64.efi'\n";
+						"-L \"$os_name-" . ++$dskind . "\" -l '\\EFI\\$os_name\\grubx64.efi'\n";
 				my $blkid_old = $blkid;
 				$blkid = `blkid -s UUID -o value $drives[$dskind]-part2`;
 				my $changefstabfrom = "\\/dev\\/disk\\/by-uuid\\/$blkid_old \\/boot\\/efi vfat defaults 0 0";
@@ -2677,8 +2677,9 @@ sub do_createbatch
 #
 # 	}
 
-	$cmd2 .= "zfs snapshot $bootpool/BOOT/debian\@install\n";
-	$cmd2 .= "zfs snapshot $rootpool/ROOT/debian\@install\n";
+	$cmd2 .= "zfs snapshot $bootpool/BOOT/$os_name\@install\n";
+	$cmd2 .= "zfs snapshot $rootpool/ROOT/$os_name
+	\@install\n";
 
 
 
