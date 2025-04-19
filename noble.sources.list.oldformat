@@ -1,0 +1,32 @@
+# Sources.list for 24.04
+# Copy into /etc/apt/sources.list
+# Then chattr +i the file so it does not get sabotaged
+
+
+deb http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
+
+deb http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse
+
+deb http://archive.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse
+
+# deb http://archive.ubuntu.com/ubuntu/ noble-backports main restricted universe multiverse
+# deb-src http://archive.ubuntu.com/ubuntu/ noble-backports main restricted universe multiverse
+
+# deb http://archive.canonical.com/ubuntu/ noble partner
+# deb-src http://archive.canonical.com/ubuntu/ noble partner
+
+
+# Types: deb
+# URIs: http://de.archive.ubuntu.com/ubuntu/
+# Suites: noble noble-updates noble-backports
+# Components: main restricted universe multiverse
+# Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+#
+# Types: deb
+# URIs: http://security.ubuntu.com/ubuntu/
+# Suites: noble-security
+# Components: main restricted universe multiverse
+# Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
