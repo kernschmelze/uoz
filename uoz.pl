@@ -26,7 +26,7 @@ use POSIX ":sys_wait_h";
 my $os_ubuntu = 1;
 my $os_name = 'ubuntu';
 
-my $ubuntudesktop = 1;
+my $ubuntudesktop = 0;
 
 # race condition if no wait
 # let it settle to avoid errors
@@ -70,6 +70,7 @@ my $diskbyid = 'disk/by-id/';
 my $myname = 'uoz.pl';
 my $tmpfile = "/tmp/$myname.tmp";
 my $file_secondstage_bootstrap = '/root/' . $myname . '_secondstagebootstrap';
+my $file_secondstage_bootstrap_ubuntuserver = $myname . '_secondstagebootstrap';
 my $boot2;
 my $secondstage = 0;
 my $thirdstage = 0;
@@ -2505,8 +2506,11 @@ sub do_createbatch
 
 
 	$cmd .= "cp $etcdefaultgrubfnpath_tmp $mntprefix/root\n";
-	$cmd .= "chroot $mntprefix $file_secondstage_bootstrap\n";
-
+	if ($os_ubuntu and not $ubuntudesktop) {
+		$cmd .= "chroot $mntprefix $file_secondstage_bootstrap_ubuntuserver\n";
+	} else {
+		$cmd .= "chroot $mntprefix $file_secondstage_bootstrap\n";
+	}
 	$cmd .= "$_unmountzfs_\n";
 
 	# TODO
