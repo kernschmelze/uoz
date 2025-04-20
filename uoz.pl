@@ -2481,18 +2481,18 @@ sub do_createbatch
 		$cmd .= "mkdir $mntprefix/sys\n";
 	}
 
-	$cmd .= "mount --make-private --rbind /dev $mntprefix/dev\n";
-	$cmd .= "mount --make-private --rbind /proc $mntprefix/proc\n";
-	$cmd .= "mount --make-private --rbind /sys $mntprefix/sys\n";
+	if ($os_ubuntu) {
+		$cmd .= "cd /mnt\n";
 
-# seen this somewhere... what does it, is it necessary???
-# 	$cmd .= "mount --make-private --rbind /dev/pts $mntprefix/dev/pts\n";
+		$cmd .= "ln -s usr/bin bin\n";
+		$cmd .= "ln -s usr/lib lib\n";
+		$cmd .= "ln -s usr/lib64 lib64\n";
+		$cmd .= "ln -s usr/sbin sbin\n";
 
-# sudo mount -o bind /dev /mnt/dev
-# sudo mount -o bind /dev/pts /mnt/dev/pts
-# sudo mount -t sysfs /sys /mnt/sys
-# sudo mount -t proc /proc /mnt/proc
 
+		$cmd .= "cd /root\n";
+
+	}
 
 	# save $myname configuration
 	$cmd .= "cp /root/$myname $mntprefix/root\n";
@@ -2511,7 +2511,18 @@ sub do_createbatch
 
 
 
+	$cmd .= "mount --make-private --rbind /dev $mntprefix/dev\n";
+	$cmd .= "mount --make-private --rbind /proc $mntprefix/proc\n";
+	$cmd .= "mount --make-private --rbind /sys $mntprefix/sys\n";
 
+# seen this somewhere... what does it, is it necessary???
+# 	$cmd .= "mount --make-private --rbind /dev/pts $mntprefix/dev/pts\n";
+
+# sudo mount -o bind /dev /mnt/dev
+# sudo mount -o bind /dev/pts /mnt/dev/pts
+# sudo mount -t sysfs /sys /mnt/sys
+# sudo mount -t proc /proc /mnt/proc
+ls
 	$cmd .= "cp $etcdefaultgrubfnpath_tmp $mntprefix/root\n";
 	if ($os_ubuntu and not $ubuntudesktop) {
 		$cmd .= "chroot $mntprefix $file_secondstage_bootstrap_ubuntuserver\n";
