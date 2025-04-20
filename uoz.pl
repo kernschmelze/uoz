@@ -2489,6 +2489,9 @@ sub do_createbatch
 		$cmd .= "ln -s usr/lib64 lib64\n";
 		$cmd .= "ln -s usr/sbin sbin\n";
 
+		$cmd .= "mkdir $mntprefix/cdrom\n";
+		$cmd .= "mkdir $mntprefix/lost+found\n";
+		$cmd .= "mkdir $mntprefix/run\n";
 
 		$cmd .= "cd /root\n";
 
