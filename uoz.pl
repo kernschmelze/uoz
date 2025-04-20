@@ -2522,7 +2522,7 @@ sub do_createbatch
 # sudo mount -o bind /dev/pts /mnt/dev/pts
 # sudo mount -t sysfs /sys /mnt/sys
 # sudo mount -t proc /proc /mnt/proc
-ls
+
 	$cmd .= "cp $etcdefaultgrubfnpath_tmp $mntprefix/root\n";
 	if ($os_ubuntu and not $ubuntudesktop) {
 		$cmd .= "chroot $mntprefix $file_secondstage_bootstrap_ubuntuserver\n";
