@@ -26,7 +26,7 @@ use POSIX ":sys_wait_h";
 my $os_ubuntu = 1;
 my $os_name = 'ubuntu';
 
-my $ubuntudesktop = 0;
+my $ubuntudesktop = 1;
 
 # race condition if no wait
 # let it settle to avoid errors
@@ -2475,11 +2475,11 @@ sub do_createbatch
 	#	to the new system and chroot into it:
 
 	# Note: This is using --rbind, not --bind.
-# 	if ($os_ubuntu) {
-# 		$cmd .= "mkdir $mntprefix/dev\n";
-# 		$cmd .= "mkdir $mntprefix/proc\n";
-# 		$cmd .= "mkdir $mntprefix/sys\n";
-# 	}
+	if ($os_ubuntu and $ubuntudesktop) {
+		$cmd .= "mkdir $mntprefix/dev\n";
+		$cmd .= "mkdir $mntprefix/proc\n";
+		$cmd .= "mkdir $mntprefix/sys\n";
+	}
 
 	$cmd .= "mount --make-private --rbind /dev $mntprefix/dev\n";
 	$cmd .= "mount --make-private --rbind /proc $mntprefix/proc\n";
