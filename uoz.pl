@@ -6,10 +6,10 @@
 
 use strict;
 use warnings;
-use utf8;
+# use utf8;
 use open ':encoding(utf8)';
-binmode(STDOUT, ":utf8");
-use feature 'unicode_strings';
+# binmode(STDOUT, ":utf8");
+# use feature 'unicode_strings';
 use Getopt::Long;
 use Data::Dumper;
 use Cwd;
