@@ -2475,11 +2475,11 @@ sub do_createbatch
 	#	to the new system and chroot into it:
 
 	# Note: This is using --rbind, not --bind.
-	if ($os_ubuntu) {
-		$cmd .= "mkdir $mntprefix/dev\n";
-		$cmd .= "mkdir $mntprefix/proc\n";
-		$cmd .= "mkdir $mntprefix/sys\n";
-	}
+# 	if ($os_ubuntu) {
+# 		$cmd .= "mkdir $mntprefix/dev\n";
+# 		$cmd .= "mkdir $mntprefix/proc\n";
+# 		$cmd .= "mkdir $mntprefix/sys\n";
+# 	}
 
 	$cmd .= "mount --make-private --rbind /dev $mntprefix/dev\n";
 	$cmd .= "mount --make-private --rbind /proc $mntprefix/proc\n";
