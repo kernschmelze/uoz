@@ -67,15 +67,15 @@ my $diskbyid = 'disk/by-id/';
 
 
 
-my $myname = 'uoz.pl';
+my $myname = 'uoz';
 my $tmpfile = "/tmp/$myname.tmp";
-my $file_secondstage_bootstrap = '/root/' . $myname . '_secondstagebootstrap';
-my $file_secondstage_bootstrap_ubuntuserver = $myname . '_secondstagebootstrap';
+my $file_secondstage_bootstrap = '/root/' . $myname . 'secondstagebootstrap';
+my $file_secondstage_bootstrap_ubuntuserver = $myname . 'secondstagebootstrap';
 my $boot2;
 my $secondstage = 0;
 my $thirdstage = 0;
-my $file_firststage = '/root/' . $myname . '_firststage';
-my $file_secondstage = '/root/' . $myname . '_secondstage';
+my $file_firststage = '/root/' . $myname . 'firststage';
+my $file_secondstage = '/root/' . $myname . 'secondstage';
 
 my $cmd3;
 
@@ -2503,6 +2503,7 @@ sub do_createbatch
 
 	$cmd .= "ls -l $mntprefix\n";
 	$cmd .= "ls -l $mntprefix/root\n";
+	$cmd .= "ls -l $file_secondstage_bootstrap\n";
 	$cmd .= "ls -l $file_secondstage_bootstrap_ubuntuserver\n";
 	$cmd .= "ls -l \n";
 
