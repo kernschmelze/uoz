@@ -2504,6 +2504,7 @@ sub do_createbatch
 	$cmd .= "ls -l $mntprefix\n";
 	$cmd .= "ls -l $mntprefix/root\n";
 	$cmd .= "ls -l $file_secondstage_bootstrap_ubuntuserver\n";
+	$cmd .= "ls -l \n";
 
 
 
